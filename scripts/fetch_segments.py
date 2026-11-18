@@ -5,7 +5,7 @@
     python scripts/fetch_segments.py MSFT       # just one company
 
 Downloads ~30 filings per company. Saves the trimmed facts to
-tests/fixtures/segment_facts/<TICKER>.csv.gz, then writes config/segments.csv
+snapshots/segment_facts/<TICKER>.csv.gz, then writes config/segments.csv
 with each value's source accession number.
 """
 
@@ -16,14 +16,14 @@ import os
 import sys
 from datetime import date
 
-from capex_tracker.config import CONFIG_DIR, REPO_ROOT, load_companies
+from capex_tracker.config import CONFIG_DIR, SNAPSHOT_DIR, load_companies
 from capex_tracker.data.sec_client import SecClient
 from capex_tracker.data.segments_xbrl import (
     build_segments_table, fetch_revenue_facts, load_facts, restatements, segment_members,
     segment_quarters, suspicious_quarters,
 )
 
-FACT_DIR = REPO_ROOT / "tests" / "fixtures" / "segment_facts"
+FACT_DIR = SNAPSHOT_DIR / "segment_facts"
 
 
 def main() -> None:

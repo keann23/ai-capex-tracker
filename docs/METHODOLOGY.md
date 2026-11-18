@@ -17,9 +17,11 @@ Default baseline window: 2019 Q1 to 2022 Q3 (ChatGPT launched Nov 30, 2022). Adj
 - Cumulative excess capex = running total since the baseline ends.
 
 ## Step 4: Estimate AI revenue ("excess revenue")
-- Fit the tracked segment's revenue trend during the baseline (log-linear growth, i.e. constant % growth).
-- Project that trend forward. Excess revenue = actual - projected trend.
-- Convert to profit by applying a margin (default: the segment's operating margin; adjustable).
+- Fit the tracked segment's revenue trend during the baseline, with a fixed quarter-of-year pattern so seasonal peaks aren't counted as excess.
+- Default trend: **constant dollar growth** (straight line). The business adds the same dollars each quarter as it did in 2019-22, so its % growth slows as it gets bigger, as large businesses usually do.
+- Alternative: **constant % growth** (log-linear). The 2019-22 baseline was a pandemic cloud boom (AWS +33%/yr, Google Cloud +45%/yr); assuming that pace continued puts the "no AI" line above actual revenue for Microsoft, Alphabet, Amazon and Meta, i.e. negative AI revenue. The conclusion flips between the two, and the app says so.
+- Project the trend forward. Excess revenue = actual - projected trend.
+- Convert to profit by applying a margin (default: the segment's trailing-4-quarter operating margin; Microsoft uses Intelligent Cloud's, Meta Family of Apps', Oracle the company-wide margin since it reports none by line; adjustable).
 
 ## Step 5: Return and payback
 - Return so far = cumulative excess profit / cumulative excess capex.

@@ -1,4 +1,4 @@
-"""Checks on real SEC data saved by scripts/fetch_fixtures.py.
+"""Checks on real SEC data saved by scripts/fetch_companyfacts.py.
 
 Skipped for any company whose fixture hasn't been fetched yet.
 annual_checks.csv holds annual figures typed in by hand from each 10-K.
@@ -10,7 +10,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from capex_tracker.config import fiscal_year_end_month, load_companies, load_tag_map
+from capex_tracker.config import SNAPSHOT_DIR, fiscal_year_end_month, load_companies, load_tag_map
 from capex_tracker.data.standardize import (
     _is_annual, dedupe, extract_facts, fiscal_year_totals, standardize_company,
 )
@@ -21,9 +21,9 @@ TAG_MAP = load_tag_map()
 
 
 def load(ticker):
-    path = FIXTURES / "companyfacts" / f"{ticker}.json"
+    path = SNAPSHOT_DIR / "companyfacts" / f"{ticker}.json"
     if not path.exists():
-        pytest.skip(f"no fixture for {ticker}; run scripts/fetch_fixtures.py")
+        pytest.skip(f"no fixture for {ticker}; run scripts/fetch_companyfacts.py")
     facts = json.loads(path.read_text())
     return facts, standardize_company(facts, TAG_MAP, fiscal_year_end_month(COMPANIES[ticker]))
 

@@ -16,6 +16,10 @@ companies:
           axes: [msft:ProductsOrServicesSecondaryCategorizationAxis]
         - members: [":CommercialCloudMember$"]
           axes: [msft:ProductsOrServicesSecondaryCategorizationAxis]
+    margin_xbrl:              # margin applied to excess revenue (TTM segment operating margin)
+      label: Intelligent Cloud segment operating margin
+      op_income: {sources: [{members: [":IntelligentCloudMember$"], axes: [us-gaap:StatementBusinessSegmentsAxis]}]}
+      revenue: {sources: [{members: [":IntelligentCloudMember$"], axes: [us-gaap:StatementBusinessSegmentsAxis]}]}
   GOOGL:
     name: Alphabet
     segment: Google Cloud
@@ -30,6 +34,10 @@ companies:
         - members: [":GoogleCloudMember$"]
           axes: [srt:ProductOrServiceAxis]
           with: GoogleInc
+    margin_xbrl:
+      label: Google Cloud segment operating margin
+      op_income: {sources: [{members: [":GoogleCloud(Segment)?Member$"], axes: [us-gaap:StatementBusinessSegmentsAxis], with: OperatingSegments}]}
+      revenue: {sources: [{members: [":GoogleCloud(Segment)?Member$"], axes: [us-gaap:StatementBusinessSegmentsAxis]}]}
   AMZN:
     name: Amazon
     segment: AWS
@@ -38,6 +46,10 @@ companies:
       sources:
         - members: [":AmazonWebServicesSegmentMember$"]
           axes: [us-gaap:StatementBusinessSegmentsAxis]
+    margin_xbrl:
+      label: AWS segment operating margin
+      op_income: {sources: [{members: [":AmazonWebServicesSegmentMember$"], axes: [us-gaap:StatementBusinessSegmentsAxis]}]}
+      revenue: {sources: [{members: [":AmazonWebServicesSegmentMember$"], axes: [us-gaap:StatementBusinessSegmentsAxis]}]}
   META:
     name: Meta
     segment: Advertising
@@ -53,6 +65,10 @@ companies:
         - members: [":AdvertisingMember$"]
           axes: [srt:ProductOrServiceAxis]
           with: FamilyOfApps
+    margin_xbrl:
+      label: Family of Apps segment operating margin
+      op_income: {sources: [{members: [":FamilyOfAppsMember$"], axes: [us-gaap:StatementBusinessSegmentsAxis]}]}
+      revenue: {sources: [{members: [":FamilyOfAppsMember$"], axes: [us-gaap:StatementBusinessSegmentsAxis]}]}
   ORCL:
     name: Oracle
     segment: Cloud services and license support
@@ -66,6 +82,8 @@ companies:
           axes: [srt:ProductOrServiceAxis, us-gaap:ProductOrServiceAxis]
         - members: [":CloudRevenuesMember$", ":SoftwareSupportMember$"]
           axes: [srt:ProductOrServiceAxis]
+    # No margin_xbrl: Oracle doesn't report operating income for this line, so the
+    # company-wide operating margin is used (labelled as such in the app).
 
 baseline:
   start: 2019-01-01

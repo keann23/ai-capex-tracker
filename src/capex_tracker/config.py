@@ -8,6 +8,8 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_DIR = REPO_ROOT / "config"
+# Saved SEC data the app and tests read; refreshed by scripts/fetch_*.py, committed.
+SNAPSHOT_DIR = REPO_ROOT / "snapshots"
 
 MONTHS = {
     m: i

@@ -49,7 +49,7 @@ def parse_instance(xml_text: str | bytes) -> list[dict]:
     """Revenue-like and operating-income USD duration facts, up to MAX_DIMS dimensions.
 
     dims is a sorted 'axis=member;axis=member' string ('' for the company total),
-    which keeps fixtures small and comparable.
+    which keeps snapshots small and comparable.
     """
     root = ET.fromstring(xml_text if isinstance(xml_text, bytes) else xml_text.encode())
 

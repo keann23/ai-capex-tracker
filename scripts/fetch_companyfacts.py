@@ -1,12 +1,12 @@
-"""Download companyfacts for each company and save trimmed test fixtures.
+"""Download companyfacts for each company and save trimmed snapshots.
 
-Run once (and whenever you want fresher fixtures):
+Run each quarter (and whenever you want fresher data):
     export SEC_USER_AGENT="Your Name your-email"
-    python scripts/fetch_fixtures.py
+    python scripts/fetch_companyfacts.py
 
-Fixtures keep only the us-gaap tags listed in config/tag_map.yaml, which turns
-several MB per company into a few hundred KB. Tests read these files and never
-call SEC.
+Snapshots keep only the us-gaap tags listed in config/tag_map.yaml, which turns
+several MB per company into a few hundred KB. The app and tests read these
+files and never call SEC.
 """
 
 from __future__ import annotations
@@ -15,10 +15,10 @@ import json
 import os
 import sys
 
-from capex_tracker.config import REPO_ROOT, load_companies, load_tag_map
+from capex_tracker.config import SNAPSHOT_DIR, load_companies, load_tag_map
 from capex_tracker.data.sec_client import SecClient
 
-FIXTURE_DIR = REPO_ROOT / "tests" / "fixtures" / "companyfacts"
+FIXTURE_DIR = SNAPSHOT_DIR / "companyfacts"
 
 
 def trim(facts: dict, tags: set[str]) -> dict:

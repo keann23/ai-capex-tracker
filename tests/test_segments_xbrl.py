@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from capex_tracker.config import load_companies
+from capex_tracker.config import SNAPSHOT_DIR, load_companies
 from capex_tracker.data.sec_client import pick_instance
 from capex_tracker.data.segments_xbrl import (
     load_facts, parse_instance, restatements, segment_quarters, suspicious_quarters,
@@ -157,7 +157,7 @@ def test_pick_instance():
 
 # ---- real data (skipped until scripts/fetch_segments.py has run) ----
 
-FACT_DIR = Path(__file__).parent / "fixtures" / "segment_facts"
+FACT_DIR = SNAPSHOT_DIR / "segment_facts"
 COMPANIES = load_companies()["companies"]
 
 # Annual segment revenue from each company's 10-K (USD).
