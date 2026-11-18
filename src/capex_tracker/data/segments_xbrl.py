@@ -108,26 +108,34 @@ def fetch_revenue_facts(client, ticker: str, since: str = "2018-01-01", log=prin
     return pd.DataFrame(rows, columns=FACT_COLUMNS)
 
 
-def segment_quarters(facts: pd.DataFrame, spec: dict, keep: str = "latest") -> pd.DataFrame:
-    """Quarterly revenue for one segment.
+EMPTY_Q = ["start", "end", "val", "tag", "method", "filed", "accn"]
 
-    spec (from companies.yaml segment_xbrl):
-      member: regex on the member name, e.g. 'AmazonWebServices'
-      axes:   allowed dimension axes, e.g. [us-gaap:StatementBusinessSegmentsAxis]
-      concepts: revenue concepts in priority order
-    Facts must have exactly one dimension: that segment on an allowed axis.
-    """
-    member = re.compile(spec["member"])
-    axes = set(spec["axes"])
-    concepts = spec.get("concepts", DEFAULT_CONCEPTS)
+
+def _sources(spec: dict) -> list[dict]:
+    """Normalize a segment_xbrl spec into a list of sources (old single-member form allowed)."""
+    if "sources" in spec:
+        return spec["sources"]
+    return [{"members": [spec["member"]], "axes": spec["axes"], **(
+        {"concepts": spec["concepts"]} if "concepts" in spec else {})}]
+
+
+def _matcher(member: str, axes: list[str], with_dim: str | None):
+    """True for dims with `member` on an allowed axis, plus exactly one other
+    dimension matching `with_dim` if given, otherwise no other dimension."""
+    mem_re, axes, with_re = re.compile(member), set(axes), re.compile(with_dim) if with_dim else None
 
     def matches(dims: str) -> bool:
-        if not dims or ";" in dims:
+        parts = dims.split(";") if dims else []
+        hits = [p for p in parts if p.partition("=")[0] in axes and mem_re.search(p.partition("=")[2])]
+        if len(hits) != 1:
             return False
-        axis, _, mem = dims.partition("=")
-        return axis in axes and bool(member.search(mem))
+        others = [p for p in parts if p != hits[0]]
+        return (not others) if with_re is None else (len(others) == 1 and bool(with_re.search(others[0])))
+    return matches
 
-    f = facts[facts["dims"].map(matches)].copy()
+
+def _member_quarters(facts, member, axes, with_dim, concepts, keep) -> pd.DataFrame:
+    f = facts[facts["dims"].map(_matcher(member, axes, with_dim))]
     pieces = []
     for priority, concept in enumerate(concepts):
         c = f[f["concept"] == concept]
@@ -142,9 +150,59 @@ def segment_quarters(facts: pd.DataFrame, spec: dict, keep: str = "latest") -> p
         if not q.empty:
             pieces.append(q.assign(priority=priority))
     if not pieces:
-        return pd.DataFrame(columns=["start", "end", "val", "tag", "method", "filed", "accn"])
+        return pd.DataFrame(columns=EMPTY_Q)
     allq = pd.concat(pieces).sort_values(["end", "priority"], kind="stable")
     return allq.drop_duplicates("end").drop(columns="priority").reset_index(drop=True)
+
+
+def segment_quarters(facts: pd.DataFrame, spec: dict, keep: str = "latest") -> pd.DataFrame:
+    """Quarterly values for one tracked line, from the sources in its spec.
+
+    spec (companies.yaml segment_xbrl) has `sources`, tried in order per quarter:
+      members:  regexes on member names; more than one are summed (e.g. Oracle's
+                FY2026 'Cloud' + 'Software support' = the old line it replaced)
+      axes:     allowed dimension axes
+      with:     optional regex for one extra dimension the fact also carries
+                (Alphabet tagged 2019 Google Cloud revenue inside 'Google Inc.')
+      concepts: optional; defaults to the standard revenue concepts
+    The first source with a value for a quarter wins, like tag drift in companyfacts.
+    """
+    pieces = []
+    for priority, src in enumerate(_sources(spec)):
+        concepts = src.get("concepts", spec.get("concepts", DEFAULT_CONCEPTS))
+        parts = [_member_quarters(facts, m, src["axes"], src.get("with"), concepts, keep)
+                 for m in src["members"]]
+        if any(p.empty for p in parts):
+            continue
+        q = parts[0]
+        if len(parts) > 1:
+            idx = [p.set_index("end") for p in parts]
+            common = sorted(set.intersection(*(set(i.index) for i in idx)))
+            if not common:
+                continue
+            first = idx[0].loc[common]
+            q = pd.DataFrame({
+                "start": first["start"].values, "end": common,
+                "val": sum(i.loc[common, "val"].values for i in idx),
+                "tag": first["tag"].values,
+                "method": ["+".join(sorted(set(ms))) for ms in zip(*(i.loc[common, "method"] for i in idx))],
+                "filed": pd.concat([i.loc[common, "filed"] for i in idx], axis=1).max(axis=1).values,
+                "accn": first["accn"].values,
+            })
+        pieces.append(q.assign(priority=priority))
+    if not pieces:
+        return pd.DataFrame(columns=EMPTY_Q)
+    allq = pd.concat(pieces).sort_values(["end", "priority"], kind="stable")
+    return allq.drop_duplicates("end").drop(columns="priority").reset_index(drop=True)
+
+
+def suspicious_quarters(q: pd.DataFrame, drop: float = 0.3) -> pd.DataFrame:
+    """Quarters more than `drop` below both neighbours: the signature of a Q4 computed
+    from a restated full year minus a non-restated 9 months. Shown, not hidden."""
+    v = q.set_index("end")["val"]
+    prev, nxt = v.shift(1), v.shift(-1)
+    bad = (v < prev * (1 - drop)) & (v < nxt * (1 - drop))
+    return q[bad.values]
 
 
 def restatements(facts: pd.DataFrame, spec: dict, rel_tol: float = 0.005) -> pd.DataFrame:

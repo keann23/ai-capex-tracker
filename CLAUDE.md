@@ -23,7 +23,7 @@ src/capex_tracker/data/     SEC fetch + cache, statement standardization, manual
 src/capex_tracker/models/   baseline, excess (AI attribution), payback, depreciation, scenarios
 config/companies.yaml       Tickers, segment to track, fiscal calendar notes
 config/tag_map.yaml         Standard line items -> candidate us-gaap tags
-config/segments.csv         Hand-entered segment revenue (cloud etc.) with source accession numbers
+config/segments.csv         Segment revenue from filing XBRL (scripts/fetch_segments.py), with source accession numbers
 config/guidance.csv         Hand-entered forward capex guidance with source and date
 ```
 

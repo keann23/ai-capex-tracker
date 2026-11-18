@@ -20,6 +20,7 @@ from capex_tracker.config import CONFIG_DIR, REPO_ROOT, load_companies
 from capex_tracker.data.sec_client import SecClient
 from capex_tracker.data.segments_xbrl import (
     build_segments_table, fetch_revenue_facts, load_facts, restatements, segment_members,
+    segment_quarters, suspicious_quarters,
 )
 
 FACT_DIR = REPO_ROOT / "tests" / "fixtures" / "segment_facts"
@@ -61,9 +62,13 @@ def main() -> None:
         if len(rows) == 0:
             print("  segment not matched. Revenue members in latest 10-K:")
             print(segment_members(facts).to_string(index=False))
-        r = restatements(facts, companies[t]["segment_xbrl"])
+        spec = companies[t]["segment_xbrl"]
+        r = restatements(facts, spec)
         if len(r):
             print(f"  {len(r)} quarter(s) restated between filings (latest value used)")
+        bad = suspicious_quarters(segment_quarters(facts, spec))
+        if len(bad):
+            print(f"  CHECK: quarters far below both neighbours: {bad['end'].dt.date.tolist()}")
 
 
 if __name__ == "__main__":

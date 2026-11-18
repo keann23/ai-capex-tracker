@@ -5,7 +5,8 @@ Companies don't report AI spending or AI revenue separately. So we estimate both
 ## Step 1: Collect the numbers
 Quarterly, about 8+ years, per company: capex, total revenue, tracked segment revenue (cloud, or ads for Meta), gross profit, operating income, depreciation & amortization, operating cash flow, PP&E.
 - Most comes from SEC structured data (companyfacts API).
-- Segment revenue is NOT in the free structured data (it's dimensional). It's hand-entered in `config/segments.csv` from each 10-Q/10-K segment note, with the accession number as source. Later phase can automate via SEC Financial Statement & Notes data sets.
+- Segment revenue is NOT in companyfacts (it's dimensional). `scripts/fetch_segments.py` reads it from each 10-Q/10-K's XBRL instance and writes `config/segments.csv`, every row with its source accession number and how it was derived. Where companies renamed or recast the line, the series is joined only where the old and new versions match in overlapping quarters (see `segment_note` in `config/companies.yaml`).
+- Tracked lines: Microsoft Cloud (not Intelligent Cloud, which was recast and then replaced), Google Cloud, AWS, Meta advertising (Family of Apps quarters start only in 2021), Oracle cloud services & license support.
 
 ## Step 2: Set the "before AI" baseline
 Default baseline window: 2019 Q1 to 2022 Q3 (ChatGPT launched Nov 30, 2022). Adjustable.
