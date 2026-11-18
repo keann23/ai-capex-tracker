@@ -4,12 +4,15 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from capex_tracker.data.panel import SCENARIO_QUARTERS, companies, company_scenarios, load_company
+from capex_tracker.data.panel import (
+    SCENARIO_QUARTERS, companies, company_scenarios, default_assumptions, load_company,
+)
 from capex_tracker.format import pct, usd_b
 from capex_tracker.models.excess import attribute
 from capex_tracker.models.scenarios import Scenario, default_scenarios
+from capex_tracker.ui import footer, page_setup
 
-st.set_page_config(page_title="Scenarios", layout="wide")
+page_setup('Scenarios')
 COMPANIES = companies()
 COLORS = {"Bull": "#2f8f5b", "Base": "#3b6fd8", "Bear": "#c2532f"}
 YEARS = SCENARIO_QUARTERS // 4
@@ -19,7 +22,7 @@ def when(d):
     return "already" if d == "already" else (d.strftime("%b %Y") if d is not None else f"not within {YEARS} yrs")
 
 
-@st.cache_data
+@st.cache_data(show_spinner='Running three scenarios for all five companies…')
 def summary() -> pd.DataFrame:
     rows = []
     for t in COMPANIES:
@@ -38,7 +41,6 @@ with st.sidebar:
     ticker = st.selectbox("Company", list(COMPANIES), format_func=lambda t: f"{COMPANIES[t]['name']} ({t})")
     data = load_company(ticker)
     q = data.quarters
-    from capex_tracker.data.panel import default_assumptions
     defaults = default_scenarios(attribute(q["capex"], q["revenue"], q["segment_revenue"], default_assumptions(data)))
     st.subheader(f"{data.segment} revenue growth")
     st.caption("Annual growth starts at 'now', moves in a straight line to 'later' over the fade years, then stays.")
@@ -113,3 +115,5 @@ st.caption("Margin = today's operating income and revenue, plus the change in ex
 
 st.subheader("All companies, default scenarios")
 st.dataframe(summary(), hide_index=True, width="stretch")
+
+footer()

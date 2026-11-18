@@ -7,11 +7,12 @@ from capex_tracker.data.panel import companies, company_wave, default_assumption
 from capex_tracker.format import pct, usd_b
 from capex_tracker.models.excess import attribute
 from capex_tracker.models.payback import headline, payback, scorecard_row
+from capex_tracker.ui import footer, page_setup
 
-st.set_page_config(page_title="AI Capex Payback Tracker", layout="wide")
+page_setup()
 
 
-@st.cache_data
+@st.cache_data(show_spinner='Running the models for all five companies…')
 def build_scorecard(shape: str) -> pd.DataFrame:
     rows = []
     for t in companies():
@@ -27,7 +28,6 @@ def build_scorecard(shape: str) -> pd.DataFrame:
 
 score = build_scorecard("linear")
 alt = build_scorecard("log")
-data_through = max(load_company(t).data_through for t in companies())
 
 st.title("AI Capex Payback Tracker")
 st.markdown(
@@ -70,4 +70,5 @@ st.page_link("pages/2_Depreciation_Wave.py", label="See when the spending hits m
 st.page_link("pages/3_Scenarios.py", label="Bull, base and bear: when does it pay back? →")
 st.page_link("pages/4_Sensitivity.py", label="Which assumptions change the answer? →")
 st.page_link("pages/5_Methodology.py", label="How the estimates work, step by step →")
-st.caption(f"Data: SEC EDGAR (companyfacts and each 10-Q/10-K's XBRL). Latest filing used: {data_through.date()}.")
+
+footer()

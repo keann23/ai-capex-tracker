@@ -11,8 +11,9 @@ from capex_tracker.data.panel import companies, load_company, run_sensitivity
 from capex_tracker.format import pct, usd_b
 from capex_tracker.models.sensitivity import flips
 from capex_tracker.worked_example import worked_example
+from capex_tracker.ui import footer, page_setup
 
-st.set_page_config(page_title="Methodology", layout="wide")
+page_setup('Methodology')
 COMPANIES = companies()
 
 TEXT = (REPO_ROOT / "docs" / "methodology_page.md").read_text()
@@ -21,7 +22,7 @@ SECTIONS = {m.group(1): m.group(0) for m in re.finditer(r"^## (\d|Known limits)[
                                                          flags=re.S | re.M)}
 
 
-@st.cache_data
+@st.cache_data(show_spinner='Running the sensitivity checks…')
 def sensitivity_flips() -> pd.DataFrame:
     return flips(run_sensitivity())
 
@@ -112,3 +113,5 @@ step(8, [f"**{r.variant}**: {r.what_changes}" for r in flipped.itertuples()] or
      ["No conclusion flips under the alternatives tested."])
 
 st.markdown(SECTIONS["Known limits"])
+
+footer()

@@ -9,8 +9,9 @@ from capex_tracker.data.panel import (
 )
 from capex_tracker.format import pct, usd_b
 from capex_tracker.models.depreciation import DepreciationAssumptions, modeled_vs_reported
+from capex_tracker.ui import footer, page_setup
 
-st.set_page_config(page_title="Depreciation Wave", layout="wide")
+page_setup('Depreciation Wave')
 COMPANIES = companies()
 base = default_depreciation()
 
@@ -110,3 +111,5 @@ else:
                "buildings sit in construction-in-progress before they depreciate; companies changed server "
                "lives (e.g. 4 to 6 years in 2022-23); land isn't depreciated. Reported figures are depreciation "
                "of property and equipment from each 10-K.")
+
+footer()
