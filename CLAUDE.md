@@ -25,11 +25,12 @@ config/companies.yaml       Tickers, segment to track, fiscal calendar notes
 config/tag_map.yaml         Standard line items -> candidate us-gaap tags
 config/segments.csv         Segment revenue from filing XBRL (scripts/fetch_segments.py), with source accession numbers
 config/guidance.csv         Hand-entered forward capex guidance with source and date
+snapshots/                  Saved SEC data (companyfacts, segment XBRL facts) the app and tests read; refresh with scripts/fetch_*.py each quarter
 ```
 
 ## Rules
 - Keep logic in `src/`, keep `app/` thin. Every model function testable without Streamlit.
-- SEC API: `User-Agent` from env var `SEC_USER_AGENT` (never hardcode). Under 10 req/s. Cache in DuckDB, 24h TTL.
+- SEC API: `User-Agent` from env var `SEC_USER_AGENT` (never hardcode). Under 10 req/s. Cache in DuckDB, 24h TTL. Only scripts/ call SEC; the app reads committed snapshots.
 - Never invent data. Every hand-entered number in `config/*.csv` must carry a source (accession number or URL) and date. Missing data is shown as missing.
 - Every estimate is labeled as an estimate in the UI. Every key assumption (baseline window, useful life, margin applied, server vs building split) is visible and adjustable.
 - Every chart and headline number must be reproducible from config + cached data. No randomness.
