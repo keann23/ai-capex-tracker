@@ -13,7 +13,14 @@ items:
   operating_income:
     type: flow
     tags: [OperatingIncomeLoss]
+  depreciation:
+    # Depreciation of property & equipment only: the right comparison for the
+    # capex depreciation model (excludes intangibles, content, lease amortization).
+    # Alphabet only tags this from FY2021; earlier quarters are missing in companyfacts.
+    type: flow
+    tags: [Depreciation]
   depreciation_amortization:
+    # Total D&A as reported. Broader than depreciation (Amazon includes video content).
     type: flow
     tags: [DepreciationDepletionAndAmortization, DepreciationAndAmortization, DepreciationAmortizationAndOther, Depreciation]
   cfo:

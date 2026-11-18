@@ -1,12 +1,9 @@
 """Home: scorecard across companies. Phase 0 placeholder, no data logic yet."""
 
-from pathlib import Path
-
 import pandas as pd
 import streamlit as st
-import yaml
 
-CONFIG = Path(__file__).resolve().parent.parent / "config" / "companies.yaml"
+from capex_tracker.config import load_companies
 
 st.set_page_config(page_title="AI Capex Payback Tracker", layout="wide")
 
@@ -18,7 +15,7 @@ st.caption(
 
 st.info("Headline finding will appear here once the data layer is built.")
 
-companies = yaml.safe_load(CONFIG.read_text())["companies"]
+companies = load_companies()["companies"]
 
 columns = [
     "Cumulative excess capex",
