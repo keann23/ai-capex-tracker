@@ -45,10 +45,15 @@ Default baseline window: 2019 Q1 to 2022 Q3 (ChatGPT launched Nov 30, 2022). Adj
 - Useful life is a slider because companies have changed server lives over time, and it moves reported profit a lot.
 
 ## Step 7: Scenarios
-Excess revenue growth going forward: Bull (current growth continues), Base (decays toward trend), Bear (flattens). Each gives a payback year and margin path.
+Each scenario is a growth path for the tracked line's revenue: annual growth starts at "now", moves in a straight line to "later" over the fade years, then stays. Revenue grows from the latest quarter, with the pre-AI trend's seasonal pattern removed and put back, so 0% means flat at today's level. Excess revenue = projected revenue - pre-AI trend.
+- Bull: today's growth (last 4 quarters vs the 4 before) continues, fading to half of it over 4 years.
+- Base: today's growth fades to the pre-AI trend's own growth over 3 years.
+- Bear: revenue flattens at today's level; excess shrinks as the trend keeps rising.
+- All three are editable. Each gives two payback dates (spend to date; including further spend at guided levels, with baseline capex = pre-AI intensity x projected revenue) and an operating margin path (extra excess profit minus extra depreciation, other costs held).
 
 ## Step 8: Sensitivity
-Show how payback changes with: baseline window, margin applied, useful life, server/building split. If a conclusion flips under reasonable assumptions, say so in the UI.
+Change one assumption at a time and rerun every company: revenue trend shape, seasonality, baseline window (2017 start, 2020 start, 2021 end), margin (x0.75, x1.25), server life (4, 8 years), server share (40%, 80%). A conclusion "flips" when a company's payback status changes, its excess revenue changes sign, or the fastest/slowest company changes. The app lists every flip.
+- Currently two assumptions flip something: constant-% growth (four companies show no AI revenue) and ending the baseline in 2021 Q4 (Meta's payback goes from about 3 to about 10 years, because its 2022 ad slump no longer lowers the trend).
 
 ## Known limits (state these in the app)
 - These are estimates, not true AI numbers. Some excess spend and growth would have happened anyway (normal cloud growth, non-AI data centers).
