@@ -7,3 +7,6 @@ requests>=2.32
 PyYAML>=6.0
 duckdb>=1.0
 pytest>=8.0
+
+# installs src/capex_tracker so app/ can import it (also used by Streamlit Cloud)
+-e .
