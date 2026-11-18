@@ -12,6 +12,8 @@ call SEC.
 from __future__ import annotations
 
 import json
+import os
+import sys
 
 from capex_tracker.config import REPO_ROOT, load_companies, load_tag_map
 from capex_tracker.data.sec_client import SecClient
@@ -31,7 +33,10 @@ def trim(facts: dict, tags: set[str]) -> dict:
 
 def main() -> None:
     tags = {t for spec in load_tag_map().values() for t in (spec.get("tags") or [])}
-    client = SecClient()
+    ua = os.environ.get("SEC_USER_AGENT", "").strip()
+    if not ua and sys.stdin.isatty():
+        ua = input('SEC contact, e.g. "Your Name your-email": ').strip()
+    client = SecClient(user_agent=ua or None)
     FIXTURE_DIR.mkdir(parents=True, exist_ok=True)
     for ticker in load_companies()["companies"]:
         trimmed = trim(client.company_facts(ticker), tags)

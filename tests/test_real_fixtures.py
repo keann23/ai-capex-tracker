@@ -51,8 +51,11 @@ def test_quarters_sum_to_reported_fiscal_year(ticker, item):
     reported = reported_fy(facts, long, item)
     common = totals.index.intersection(reported.index)
     assert len(common) >= 5, f"{ticker} {item}: only {len(common)} comparable years"
+    # Tolerance: companies report in rounded millions, and later restatements of
+    # single quarters don't always reconcile exactly (Alphabet 2015 capex: 0.23%).
+    tol = (reported[common].abs() * 0.005).clip(lower=5e6)
     diff = (totals[common] - reported[common]).abs()
-    assert (diff <= 1e6).all(), f"{ticker} {item} quarter sums off FY:\n{diff[diff > 1e6]}"
+    assert (diff <= tol).all(), f"{ticker} {item} quarter sums off FY:\n{diff[diff > tol]}"
 
 
 @pytest.mark.parametrize("ticker", list(COMPANIES))

@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from capex_tracker.data.standardize import (
-    add_period_labels, dedupe, extract_facts, fiscal_year_totals, quarterize_flow,
+    add_period_labels, dedupe, drop_10k_subannual, extract_facts, fiscal_year_totals, quarterize_flow,
     standardize_company, to_wide,
 )
 from tests.helpers import companyfacts, fact
@@ -167,3 +167,17 @@ def test_wide_and_fiscal_year_totals():
     assert pd.isna(wide.loc[3, "cfo"])  # missing stays missing
     assert fiscal_year_totals(long, "capex").to_dict() == {2023: 300}
     assert fiscal_year_totals(long, "cfo").empty  # only 2 quarters
+
+
+def test_10k_quarterly_values_ignored():
+    # A 10-K's quarterly table mis-labels Q1 (Amazon FY2012 10-K style); the 10-Q value must win.
+    q = extract_facts(companyfacts({"Revenues": [
+        fact("2023-01-01", "2023-03-31", 100, "2023-04-25"),
+        fact("2023-01-01", "2023-03-31", 555, "2025-02-01", form="10-K"),
+        fact("2023-01-01", "2023-06-30", 210, "2023-07-25"),
+        fact("2023-01-01", "2023-09-30", 330, "2023-10-25"),
+        fact(*FY23, 460, "2024-02-01", form="10-K"),
+    ]}), "Revenues")
+    q = quarterize_flow(dedupe(drop_10k_subannual(q), "latest"))
+    assert q["val"].tolist() == [100, 110, 120, 130]
+    assert q["method"].tolist() == ["reported", "ytd_diff", "ytd_diff", "ytd_diff"]

@@ -54,6 +54,18 @@ def extract_facts(companyfacts: dict, tag: str) -> pd.DataFrame:
     return df.reset_index(drop=True)
 
 
+def drop_10k_subannual(facts: pd.DataFrame) -> pd.DataFrame:
+    """Keep only annual-length flow values from 10-Ks; quarters come from 10-Qs.
+
+    10-K unaudited quarterly tables can be mis-tagged (Amazon's FY2012 10-K labels
+    2012 quarters as 2011), and with keep='latest' they would override the correct
+    10-Q values. Must run before dedupe(). Q4 then comes from FY minus 9M YTD.
+    """
+    days = (facts["end"] - facts["start"]).dt.days
+    is_10k = facts["form"].astype(str).str.startswith("10-K")
+    return facts[~is_10k | _is_annual(days)]
+
+
 def dedupe(df: pd.DataFrame, keep: Keep = "latest") -> pd.DataFrame:
     """One value per (tag, start, end).
 
@@ -138,7 +150,7 @@ def _item_series(companyfacts: dict, spec: dict, keep: Keep) -> pd.DataFrame:
         if facts.empty:
             continue
         if spec["type"] == "flow":
-            q = quarterize_flow(dedupe(facts[facts["start"].notna()], keep))
+            q = quarterize_flow(dedupe(drop_10k_subannual(facts[facts["start"].notna()]), keep))
         else:
             inst = facts[facts["start"].isna()].drop(columns="start")
             q = dedupe(inst, keep).assign(start=pd.NaT, method="reported")
