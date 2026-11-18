@@ -1,5 +1,7 @@
 # AI Capex Payback Tracker
 
+**Live app: [ai-capex-tracker.streamlit.app](https://ai-capex-tracker.streamlit.app)**
+
 Microsoft, Alphabet, Amazon, Meta and Oracle are spending hundreds of billions a year on AI infrastructure, but none of them reports AI spending or AI revenue as its own line. This tracker estimates both by comparing each company with its own pre-ChatGPT baseline: spending and revenue above the old pace count as "excess", attributed to AI. From those estimates it calculates the return so far, the payback period, and when the resulting depreciation will squeeze operating margins.
 
 **Finding (data through Q3 2026):** at current run-rates, Meta pays back its estimated AI capex fastest (about 3 years of today's excess profit) and Oracle slowest (about 11). Depreciation from spending already guided takes 5–11 margin points off the four hyperscalers within two years, and about 28 off Oracle, with revenue held flat. The answer depends heavily on one assumption: if pre-AI cloud revenue had kept growing at its 2019–22 boom pace, four of the five would show no AI revenue at all. The app says so wherever it matters.
@@ -59,7 +61,7 @@ After all five companies have filed their 10-Q or 10-K:
 
 ## Deploy (Streamlit Community Cloud)
 
-At [share.streamlit.io](https://share.streamlit.io), sign in with GitHub and create an app from this repository: branch `main`, main file `app/Home.py`, Python 3.12. No secrets are needed.
+Deployed at [ai-capex-tracker.streamlit.app](https://ai-capex-tracker.streamlit.app) from `main` (main file `app/Home.py`, Python 3.12, no secrets). Every push to `main` redeploys it. To set it up again: at [share.streamlit.io](https://share.streamlit.io), sign in with GitHub and create an app from this repository with those settings.
 
 ## Project layout
 
