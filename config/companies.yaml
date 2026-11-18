@@ -1,0 +1,32 @@
+# Companies tracked. segment = the revenue line where AI payoff is expected to show up.
+companies:
+  MSFT:
+    name: Microsoft
+    segment: Intelligent Cloud
+    fiscal_year_end: June   # fiscal quarters must be calendar-aligned for comparison
+  GOOGL:
+    name: Alphabet
+    segment: Google Cloud
+    fiscal_year_end: December
+  AMZN:
+    name: Amazon
+    segment: AWS
+    fiscal_year_end: December
+  META:
+    name: Meta
+    segment: Family of Apps   # AI payoff sits inside ad revenue; attribution is fuzzier
+    fiscal_year_end: December
+  ORCL:
+    name: Oracle
+    segment: Cloud services and license support
+    fiscal_year_end: May
+
+baseline:
+  start: 2019-01-01
+  end: 2022-09-30   # ChatGPT launched 2022-11-30
+
+defaults:
+  margin_source: segment_operating_margin
+  server_share_of_capex: 0.60
+  server_life_years: 6
+  building_life_years: 15

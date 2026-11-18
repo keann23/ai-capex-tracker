@@ -1,0 +1,35 @@
+# Standard line item -> candidate us-gaap tags, in priority order (first tag with a value for that period wins).
+items:
+  revenue:
+    type: flow
+    tags: [RevenueFromContractWithCustomerExcludingAssessedTax, Revenues, SalesRevenueNet]
+  cost_of_revenue:
+    type: flow
+    tags: [CostOfRevenue, CostOfGoodsAndServicesSold]
+  gross_profit:
+    type: flow
+    tags: [GrossProfit]
+    derive: revenue - cost_of_revenue
+  operating_income:
+    type: flow
+    tags: [OperatingIncomeLoss]
+  depreciation_amortization:
+    type: flow
+    tags: [DepreciationDepletionAndAmortization, DepreciationAndAmortization, DepreciationAmortizationAndOther, Depreciation]
+  cfo:
+    type: flow
+    tags: [NetCashProvidedByUsedInOperatingActivities]
+  capex:
+    type: flow
+    # Amazon also reports finance-lease property acquisitions; note in UI if excluded
+    tags: [PaymentsToAcquirePropertyPlantAndEquipment, PaymentsToAcquireProductiveAssets]
+  ppe_gross:
+    type: instant
+    tags: [PropertyPlantAndEquipmentGross]
+  ppe_net:
+    type: instant
+    tags: [PropertyPlantAndEquipmentNet]
+  free_cash_flow:
+    type: flow
+    tags: []
+    derive: cfo - capex
