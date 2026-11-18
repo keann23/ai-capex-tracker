@@ -6,11 +6,12 @@ import streamlit as st
 
 from capex_tracker.data.panel import companies, run_sensitivity
 from capex_tracker.models.sensitivity import DEFAULT, flips
+from capex_tracker.ui import footer, page_setup
 
-st.set_page_config(page_title="Sensitivity", layout="wide")
+page_setup('Sensitivity')
 
 
-@st.cache_data
+@st.cache_data(show_spinner='Rerunning every company under 12 sets of assumptions…')
 def results() -> pd.DataFrame:
     return run_sensitivity()
 
@@ -61,3 +62,5 @@ st.dataframe(table("margin_change_2y", lambda v: f"{v:+.1f}", True), hide_index=
 st.caption("With calibration on, the model is scaled to each company's reported depreciation, which absorbs much "
            "of the effect of server life and split. Turn calibration off on the Depreciation Wave page to see "
            "the raw effect.")
+
+footer()

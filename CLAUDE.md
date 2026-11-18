@@ -43,7 +43,8 @@ snapshots/                  Saved SEC data (companyfacts, segment XBRL facts) th
 ```
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-export SEC_USER_AGENT="Your Name your-email"   # set this yourself
-streamlit run app/Home.py
+streamlit run app/Home.py          # reads committed snapshots; no SEC access needed
 pytest
+python scripts/fetch_companyfacts.py   # quarterly refresh; asks for SEC contact or reads SEC_USER_AGENT
+python scripts/fetch_segments.py       # quarterly refresh of segment revenue (--offline to rebuild only)
 ```

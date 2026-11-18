@@ -8,8 +8,9 @@ from capex_tracker.data.panel import companies, default_assumptions, load_compan
 from capex_tracker.format import pct, usd_b
 from capex_tracker.models.excess import Assumptions, attribute
 from capex_tracker.models.payback import crossover, payback
+from capex_tracker.ui import footer, page_setup
 
-st.set_page_config(page_title="Company Deep Dive", layout="wide")
+page_setup('Company Deep Dive')
 
 COMPANIES = companies()
 SHAPES = {"Constant $ growth": "linear", "Constant % growth": "log"}
@@ -146,3 +147,5 @@ money = [c for c in table.columns if c not in ("Quarter (calendar)", "Fiscal", "
 st.dataframe(table.style.format({c: usd_b for c in money}), width="stretch", hide_index=True)
 st.caption(f"Raw values are SEC filings (companyfacts and each filing's XBRL); methods: reported, ytd_diff "
            f"(year-to-date difference), q4_derived. Data through filings dated {data.data_through.date()}.")
+
+footer()
