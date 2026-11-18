@@ -1,38 +1,62 @@
-"""Home: scorecard across companies. Phase 0 placeholder, no data logic yet."""
+"""Home: scorecard across companies and the headline finding (default assumptions)."""
 
 import pandas as pd
 import streamlit as st
 
-from capex_tracker.config import load_companies
+from capex_tracker.data.panel import companies, default_assumptions, load_company
+from capex_tracker.format import pct, usd_b
+from capex_tracker.models.excess import attribute
+from capex_tracker.models.payback import headline, payback, scorecard_row
 
 st.set_page_config(page_title="AI Capex Payback Tracker", layout="wide")
 
+
+@st.cache_data
+def build_scorecard(shape: str) -> pd.DataFrame:
+    rows = []
+    for t in companies():
+        d = load_company(t)
+        q = d.quarters
+        att = attribute(q["capex"], q["revenue"], q["segment_revenue"], default_assumptions(d, shape))
+        rows.append(scorecard_row(t, d.name, d.segment, payback(att)) | {"margin": d.margin})
+    return pd.DataFrame(rows)
+
+
+score = build_scorecard("linear")
+alt = build_scorecard("log")
+data_through = max(load_company(t).data_through for t in companies())
+
 st.title("AI Capex Payback Tracker")
+st.markdown(
+    "Big Tech doesn't report AI spending or AI revenue. This tracker **estimates** both by comparing each "
+    "company with its own pre-ChatGPT baseline, then asks how long the extra profit takes to cover the extra spend."
+)
+
+st.info(headline(score, alt, "with constant-% revenue growth"))
+
+years = score["implied_payback_years"].map(lambda y: "never at current rate" if y == float("inf")
+                                           else ("—" if pd.isna(y) else f"{y:.1f}"))
+table = pd.DataFrame({
+    "Company": score["company"] + " (" + score["ticker"] + ")",
+    "Tracked line": score["segment"],
+    "Cumulative excess capex": score["cumulative_excess_capex"].map(lambda v: usd_b(v, 0)),
+    "Annualized excess revenue": score["annualized_excess_revenue"].map(usd_b),
+    "Annualized excess profit": score["annualized_excess_profit"].map(usd_b),
+    "Return so far": score["return_so_far"].map(lambda v: pct(v, 0)),
+    "Implied payback (yrs)": years,
+    "Status": score["status"],
+    "Through": score["as_of"].map(lambda d: d.date() if pd.notna(d) else "—"),
+})
+st.subheader("Scorecard (all figures are estimates)")
+st.dataframe(table, hide_index=True, width="stretch")
+
 st.caption(
-    "Estimates of AI-attributable capex, revenue, payback and depreciation "
-    "for the hyperscalers. All figures are estimates."
+    "**Excess capex**: capex above the 2019–22 capex-to-revenue ratio, summed since Q4 2022. "
+    "**Excess revenue**: tracked line above its 2019–22 trend (constant-$ growth, seasonal), latest quarter × 4. "
+    "**Excess profit**: excess revenue × the line's operating margin. "
+    "**Return so far**: cumulative excess profit ÷ cumulative excess capex. "
+    "**Implied payback**: years of today's excess profit needed to cover the excess capex spent so far "
+    "(ignores further spend). Peak depreciation year and margin hit arrive with the depreciation model."
 )
-
-st.info("Headline finding will appear here once the data layer is built.")
-
-companies = load_companies()["companies"]
-
-columns = [
-    "Cumulative excess capex",
-    "Annualized excess revenue",
-    "Return so far",
-    "Implied payback (yrs)",
-    "Peak depreciation year",
-    "Projected margin hit (pts)",
-]
-scorecard = pd.DataFrame(
-    [
-        {"Ticker": t, "Company": c["name"], "Tracked segment": c["segment"]}
-        | {col: None for col in columns}
-        for t, c in companies.items()
-    ]
-)
-
-st.subheader("Scorecard (estimates)")
-st.dataframe(scorecard, hide_index=True, width="stretch")
-st.caption("Empty cells are missing data, not zero. Last updated: not yet run. Source: SEC EDGAR companyfacts.")
+st.page_link("pages/1_Company_Deep_Dive.py", label="Change the assumptions for one company →")
+st.caption(f"Data: SEC EDGAR (companyfacts and each 10-Q/10-K's XBRL). Latest filing used: {data_through.date()}.")

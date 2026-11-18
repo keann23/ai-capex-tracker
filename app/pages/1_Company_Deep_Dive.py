@@ -4,9 +4,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from capex_tracker.data.panel import companies, load_company
+from capex_tracker.data.panel import companies, default_assumptions, load_company
 from capex_tracker.format import pct, usd_b
 from capex_tracker.models.excess import Assumptions, attribute
+from capex_tracker.models.payback import crossover, payback
 
 st.set_page_config(page_title="Company Deep Dive", layout="wide")
 
@@ -22,7 +23,8 @@ with st.sidebar:
     labels = q["calendar_label"].to_dict()
 
     st.subheader("Assumptions")
-    defaults = (pd.Timestamp("2019-01-01"), pd.Timestamp("2022-09-30"))
+    base = default_assumptions(data)
+    defaults = (base.baseline_start, base.baseline_end)
     first = next(d for d in ends if d >= defaults[0])
     last = max(d for d in ends if d <= defaults[1])
     b_start, b_end = st.select_slider(
@@ -47,6 +49,7 @@ except ValueError as e:
     st.error(f"Can't run the model with this baseline window: {e}")
     st.stop()
 latest = res.latest()
+pb = payback(res)
 
 # ---------- header ----------
 st.title(f"{data.name}: {data.segment}")
@@ -56,6 +59,7 @@ if data.segment_note:
     st.caption(f"Tracked line: {data.segment_note}")
 
 c1, c2, c3, c4 = st.columns(4)
+c5, c6, c7, c8 = st.columns(4)
 c1.metric("Cumulative excess capex (est.)", usd_b(latest["cumulative_excess_capex"], 0),
           help=f"Since {res.capex.index[res.capex.index > a.baseline_end][0].date()}, to {latest['capex_as_of'].date()}")
 c2.metric("Annualized excess revenue (est.)", usd_b(latest["annualized_excess_revenue"]),
@@ -63,6 +67,14 @@ c2.metric("Annualized excess revenue (est.)", usd_b(latest["annualized_excess_re
 c3.metric("Cumulative excess profit (est.)", usd_b(latest["cumulative_excess_profit"]),
           help=f"Cumulative excess revenue x {pct(margin)} margin")
 c4.metric("Baseline capex intensity", pct(res.intensity), help="Baseline capex / revenue")
+c5.metric("Return so far (est.)", pct(pb.return_so_far, 0),
+          help="Cumulative excess profit / cumulative excess capex")
+c6.metric("Implied payback (est.)",
+          "never at current rate" if pb.implied_payback_years == float("inf")
+          else ("—" if pd.isna(pb.implied_payback_years) else f"{pb.implied_payback_years:.1f} yrs"),
+          help="Cumulative excess capex / annualized excess profit (latest quarter x 4). Ignores further spend.")
+c7.metric("Annualized excess profit (est.)", usd_b(pb.annualized_excess_profit))
+c8.metric("Status", pb.status)
 
 # Does the trend-shape choice flip the answer? Say so.
 other_shape = "log" if a.trend_shape == "linear" else "linear"
@@ -106,6 +118,17 @@ st.markdown(f"**{data.segment} revenue vs pre-AI trend** · shaded gap = excess 
 st.plotly_chart(gap_chart(res.revenue, "segment_revenue", "trend_revenue", f"Actual {data.segment} revenue",
                           f"Pre-AI trend ({res.trend.describe()})"), width="stretch")
 st.caption(f"Trend fit on {res.trend.n_quarters} baseline quarters, R² {res.trend.r_squared:.3f}.")
+
+st.markdown("**Cumulative excess capex vs cumulative excess profit** · payback is where the lines cross (estimate)")
+xo = crossover(res)
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=xo.index, y=xo["cumulative_excess_capex"] / 1e9, name="Cumulative excess capex",
+                         mode="lines", line=dict(color="#c2532f", width=2.5)))
+fig.add_trace(go.Scatter(x=xo.index, y=xo["cumulative_excess_profit"] / 1e9, name="Cumulative excess profit",
+                         mode="lines", line=dict(color="#2f8f5b", width=2.5)))
+fig.update_layout(yaxis_title="$B, cumulative since baseline", hovermode="x unified", height=360,
+                  legend=dict(orientation="h", y=-0.15), margin=dict(t=20, b=10, l=10, r=10))
+st.plotly_chart(fig, width="stretch")
 
 # ---------- numbers with sources ----------
 st.subheader("Quarterly numbers")
