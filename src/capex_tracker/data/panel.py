@@ -112,3 +112,31 @@ def company_wave(data: CompanyData, a=None, horizon_quarters: int = 16, calibrat
     return depreciation_wave(q["capex"], q["revenue"], q["operating_income"], company_guidance(data.ticker),
                              data.fy_end_month, a or default_depreciation(), horizon_quarters,
                              data.depreciation_reported if calibrate else None)
+
+
+SCENARIO_QUARTERS = 24   # 6 years
+
+
+def company_scenarios(data: CompanyData, a=None, d=None, scenarios=None, quarters: int = SCENARIO_QUARTERS):
+    """Default (or given) bull/base/bear runs for one company."""
+    from capex_tracker.models.excess import attribute
+    from capex_tracker.models.scenarios import default_scenarios, run_scenario
+    q = data.quarters
+    att = attribute(q["capex"], q["revenue"], q["segment_revenue"], a or default_assumptions(data))
+    wave = company_wave(data, d, horizon_quarters=quarters)
+    return att, [run_scenario(att, wave, s, quarters) for s in (scenarios or default_scenarios(att))]
+
+
+def run_sensitivity(variants=None) -> pd.DataFrame:
+    """Every company under every variant (one changed assumption at a time)."""
+    from capex_tracker.models.sensitivity import VARIANTS, apply_variant, evaluate
+    rows = []
+    for t in companies():
+        data = load_company(t)
+        q = data.quarters
+        for v in variants or VARIANTS:
+            a, d = apply_variant(default_assumptions(data), default_depreciation(), v)
+            r = evaluate(q["capex"], q["revenue"], q["segment_revenue"], a,
+                         lambda dd: company_wave(data, dd, horizon_quarters=16), d)
+            rows.append({"variant": v.label, "group": v.group, "company": data.name, "ticker": t} | r)
+    return pd.DataFrame(rows)

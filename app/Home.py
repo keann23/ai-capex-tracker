@@ -67,4 +67,6 @@ st.caption(
 )
 st.page_link("pages/1_Company_Deep_Dive.py", label="Change the assumptions for one company →")
 st.page_link("pages/2_Depreciation_Wave.py", label="See when the spending hits margins →")
+st.page_link("pages/3_Scenarios.py", label="Bull, base and bear: when does it pay back? →")
+st.page_link("pages/4_Sensitivity.py", label="Which assumptions change the answer? →")
 st.caption(f"Data: SEC EDGAR (companyfacts and each 10-Q/10-K's XBRL). Latest filing used: {data_through.date()}.")
