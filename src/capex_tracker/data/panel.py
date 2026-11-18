@@ -77,3 +77,11 @@ def _default_margin(ticker: str, company: dict, q: pd.DataFrame) -> tuple[float,
 
 def companies() -> dict:
     return load_companies()["companies"]
+
+
+def default_assumptions(data: CompanyData, trend_shape: str = "linear"):
+    """Assumptions from config/companies.yaml defaults plus the company's default margin."""
+    from capex_tracker.models.excess import Assumptions
+    base = load_companies()["baseline"]
+    return Assumptions(pd.Timestamp(base["start"]), pd.Timestamp(base["end"]), data.margin,
+                       seasonal=True, trend_shape=trend_shape)

@@ -26,6 +26,8 @@ Default baseline window: 2019 Q1 to 2022 Q3 (ChatGPT launched Nov 30, 2022). Adj
 ## Step 5: Return and payback
 - Return so far = cumulative excess profit / cumulative excess capex.
 - Implied payback (years) = cumulative excess capex / current annualized excess profit.
+  - "Current annualized" = latest quarter x 4 (a run-rate); the seasonal pattern is already in the trend, so a Q4 peak isn't counted as excess.
+  - It's the years of today's excess profit needed to cover the excess capex spent so far, and ignores further spend.
 - Forward payback: under each scenario, the year cumulative excess profit catches up with cumulative excess capex (ignoring further spend, and including projected spend, both shown).
 
 ## Step 6: The depreciation wave (the FP&A core)
