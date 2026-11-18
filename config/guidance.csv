@@ -1,1 +1,5 @@
-company,period,capex_guidance_low_usd,capex_guidance_high_usd,source,date_given
+company,period,capex_guidance_low_usd,capex_guidance_high_usd,source,date_given,note
+GOOGL,FY2026,195000000000,205000000000,https://www.investing.com/news/transcripts/earnings-call-transcript-alphabet-q3-2026-profit-miss-sparks-10-afterhours-drop-93CH-4981037,2026-10-28,Q3 2026 call: full-year capex unchanged; capex to rise significantly in 2027 (not quantified)
+AMZN,FY2026,220000000000,220000000000,https://www.aboutamazon.com/news/company-news/amazon-earnings-q3-2026-report,2026-10-29,Cash capex (net of proceeds and incentives); our capex is gross purchases. 2027 'meaningfully higher' (not quantified)
+META,FY2026,135000000000,145000000000,https://investor.atmeta.com/investor-news/press-release-details/2026/Meta-Reports-Third-Quarter-2026-Results/default.aspx,2026-10-21,Includes principal payments on finance leases (about $1B a quarter). 2027 guidance deferred to Q4 call
+ORCL,FY2027,90000000000,95000000000,https://www.marketbeat.com/earnings/reports/2026-9-10-oracle-co-stock/,2026-09-10,Reported capex; management says net cash capex no more than $70B after customer prepayments

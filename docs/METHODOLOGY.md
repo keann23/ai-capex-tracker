@@ -35,8 +35,13 @@ Default baseline window: 2019 Q1 to 2022 Q3 (ChatGPT launched Nov 30, 2022). Adj
 - Split each quarter's capex into servers/network equipment (default 6-year life) and buildings/infrastructure (default 15-year life), using an adjustable split (default 60/40).
 - Build a vintage schedule: each quarter's capex depreciated straight-line from the following quarter.
 - Add future capex from `config/guidance.csv` (management guidance) to project forward.
+  - Midpoint of the range. For a year already under way, what's left after actual year-to-date spend is spread over the remaining quarters.
+  - After the last guided period, capex is held at that year's average quarterly rate. With no guidance (Microsoft: its figure includes finance leases and its period is ambiguous), capex is held at the last 4 quarters' average.
+  - Guidance must measure the same thing as our capex (cash purchases of property & equipment). Differences are noted per row.
 - Output: projected depreciation by quarter, and projected operating margin impact vs today, holding other things equal.
-- Sanity check: modeled depreciation for historical quarters vs actual reported D&A. Show the gap.
+- Sanity check: modeled depreciation vs reported depreciation of property & equipment, by fiscal year (most companies only report it annually). Show the gap.
+- Calibration (default on): scale the model so the latest full fiscal year matches reported depreciation, then apply that factor to the projection. Gaps come from finance leases (not in capex), construction in progress (buildings depreciate only once in service), server-life changes and land.
+- Scorecard: "biggest depreciation rise" = calendar year modeled depreciation rises most vs the year before; "margin change in 2 yrs" = operating margin change from extra depreciation alone, revenue and other costs held at the last 4 quarters.
 - Useful life is a slider because companies have changed server lives over time, and it moves reported profit a lot.
 
 ## Step 7: Scenarios
