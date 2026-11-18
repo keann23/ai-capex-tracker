@@ -16,7 +16,7 @@ import pandas as pd
 from capex_tracker.config import SNAPSHOT_DIR, fiscal_year_end_month, load_companies, load_tag_map
 from capex_tracker.data.manual_inputs import load_segments
 from capex_tracker.data.segments_xbrl import load_facts, segment_quarters
-from capex_tracker.data.standardize import add_period_labels, standardize_company, to_wide
+from capex_tracker.data.standardize import add_period_labels, annual_flow, standardize_company, to_wide
 from capex_tracker.models.excess import ttm_margin
 
 OP_INCOME = ["us-gaap:OperatingIncomeLoss"]
@@ -35,6 +35,8 @@ class CompanyData:
     margin_label: str
     margin_as_of: pd.Timestamp
     data_through: pd.Timestamp    # filing date of the newest companyfacts value
+    fy_end_month: int
+    depreciation_reported: pd.Series   # fiscal-year depreciation of property & equipment, from 10-Ks
 
 
 @lru_cache(maxsize=None)
@@ -58,6 +60,9 @@ def load_company(ticker: str) -> CompanyData:
         segment_note=company.get("segment_note", ""), quarters=q.sort_index(), long=long,
         segments=segs, margin=margin, margin_label=label, margin_as_of=as_of,
         data_through=long["filed"].max(),
+        fy_end_month=fiscal_year_end_month(company),
+        depreciation_reported=annual_flow(facts, load_tag_map()["depreciation"]["tags"],
+                                          fiscal_year_end_month(company)),
     )
 
 
@@ -85,3 +90,25 @@ def default_assumptions(data: CompanyData, trend_shape: str = "linear"):
     base = load_companies()["baseline"]
     return Assumptions(pd.Timestamp(base["start"]), pd.Timestamp(base["end"]), data.margin,
                        seasonal=True, trend_shape=trend_shape)
+
+
+def default_depreciation():
+    from capex_tracker.models.depreciation import DepreciationAssumptions
+    d = load_companies()["defaults"]
+    return DepreciationAssumptions(float(d["server_share_of_capex"]), float(d["server_life_years"]),
+                                   float(d["building_life_years"]))
+
+
+def company_guidance(ticker: str) -> pd.DataFrame:
+    from capex_tracker.data.manual_inputs import load_guidance
+    g = load_guidance()
+    return g[g["company"] == ticker].reset_index(drop=True)
+
+
+def company_wave(data: CompanyData, a=None, horizon_quarters: int = 16, calibrate: bool = True):
+    """Depreciation wave for one company: actual capex + guidance, calibrated to reported depreciation."""
+    from capex_tracker.models.depreciation import depreciation_wave
+    q = data.quarters
+    return depreciation_wave(q["capex"], q["revenue"], q["operating_income"], company_guidance(data.ticker),
+                             data.fy_end_month, a or default_depreciation(), horizon_quarters,
+                             data.depreciation_reported if calibrate else None)

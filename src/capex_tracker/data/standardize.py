@@ -267,3 +267,22 @@ def fiscal_year_totals(long: pd.DataFrame, item: str) -> pd.Series:
     g = s.groupby("fiscal_year")["value"]
     counts = g.count()
     return g.sum()[counts == 4]
+
+
+def annual_flow(companyfacts: dict, tags: list[str], fiscal_year_end_month: int,
+                keep: Keep = "latest") -> pd.Series:
+    """Fiscal-year values as filed in 10-Ks (first tag in priority order per year).
+
+    For items companies only break out annually (e.g. depreciation for most years).
+    """
+    out = {}
+    for tag in tags:
+        f = extract_facts(companyfacts, tag)
+        if f.empty:
+            continue
+        f = dedupe(f[f["start"].notna() & f["form"].str.startswith("10-K")], keep)
+        f = f[_is_annual((f["end"] - f["start"]).dt.days)]
+        fy = f["end"].dt.year + (f["end"].dt.month > fiscal_year_end_month).astype(int)
+        for y, v in zip(fy, f["val"]):
+            out.setdefault(int(y), float(v))
+    return pd.Series(out, dtype=float).sort_index()

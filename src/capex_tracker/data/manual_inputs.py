@@ -94,7 +94,7 @@ def load_segments(path: Path = CONFIG_DIR / "segments.csv", companies: dict | No
 def load_guidance(path: Path = CONFIG_DIR / "guidance.csv", companies: dict | None = None) -> pd.DataFrame:
     """Hand-entered forward capex guidance (raw USD). Period uses the company's fiscal calendar."""
     companies = companies if companies is not None else load_companies()["companies"]
-    df = _read(path, GUIDANCE_COLUMNS)
+    df = _read(path, GUIDANCE_COLUMNS, optional=("note",))
     errors: list[str] = []
     out = []
     for i, r in df.iterrows():
@@ -113,7 +113,8 @@ def load_guidance(path: Path = CONFIG_DIR / "guidance.csv", companies: dict | No
             "capex_guidance_low_usd": low, "capex_guidance_high_usd": high,
             "source": r["source"],
             "date_given": _date(r["date_given"], "date_given", i, errors),
+            "note": r.get("note", ""),
         })
     _check(errors, path.name)
-    result = pd.DataFrame(out, columns=GUIDANCE_COLUMNS)
+    result = pd.DataFrame(out, columns=GUIDANCE_COLUMNS + ["note"])
     return result.astype({"capex_guidance_low_usd": float, "capex_guidance_high_usd": float})
