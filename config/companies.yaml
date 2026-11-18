@@ -1,25 +1,71 @@
 # Companies tracked. segment = the revenue line where AI payoff is expected to show up.
+# segment_xbrl tells scripts/fetch_segments.py where that line is tagged in each filing.
 companies:
   MSFT:
     name: Microsoft
-    segment: Intelligent Cloud
+    segment: Microsoft Cloud
     fiscal_year_end: June   # fiscal quarters must be calendar-aligned for comparison
+    segment_note: >-
+      Microsoft Cloud revenue (Azure, Microsoft 365 commercial cloud, LinkedIn commercial,
+      Dynamics 365). Used instead of the Intelligent Cloud segment, which was recast in
+      FY2025 and replaced by new segments in FY2027. Called commercial cloud before FY2022;
+      the two are identical in every overlapping quarter.
+    segment_xbrl:
+      sources:
+        - members: [":MicrosoftCloudMember$"]
+          axes: [msft:ProductsOrServicesSecondaryCategorizationAxis]
+        - members: [":CommercialCloudMember$"]
+          axes: [msft:ProductsOrServicesSecondaryCategorizationAxis]
   GOOGL:
     name: Alphabet
     segment: Google Cloud
     fiscal_year_end: December
+    segment_note: >-
+      Google Cloud became a reported segment in Q4 2020. 2019-2020 quarters come from the
+      Google Cloud revenue line inside the former Google segment.
+    segment_xbrl:
+      sources:
+        - members: [":GoogleCloud(Segment)?Member$"]
+          axes: [us-gaap:StatementBusinessSegmentsAxis]
+        - members: [":GoogleCloudMember$"]
+          axes: [srt:ProductOrServiceAxis]
+          with: GoogleInc
   AMZN:
     name: Amazon
     segment: AWS
     fiscal_year_end: December
+    segment_xbrl:
+      sources:
+        - members: [":AmazonWebServicesSegmentMember$"]
+          axes: [us-gaap:StatementBusinessSegmentsAxis]
   META:
     name: Meta
-    segment: Family of Apps   # AI payoff sits inside ad revenue; attribution is fuzzier
+    segment: Advertising
     fiscal_year_end: December
+    segment_note: >-
+      Advertising revenue, where Meta's AI payoff shows up (ranking, recommendations,
+      ad tools). Family of Apps quarterly figures only start in 2021; advertising runs
+      back to 2016. Tagged inside Family of Apps from Q3 2021.
+    segment_xbrl:
+      sources:
+        - members: [":AdvertisingMember$"]
+          axes: [srt:ProductOrServiceAxis, us-gaap:ProductOrServiceAxis]
+        - members: [":AdvertisingMember$"]
+          axes: [srt:ProductOrServiceAxis]
+          with: FamilyOfApps
   ORCL:
     name: Oracle
     segment: Cloud services and license support
     fiscal_year_end: May
+    segment_note: >-
+      Oracle replaced this line in FY2026 with 'Cloud' and 'Software support'; their sum
+      equals the old line exactly in every overlapping quarter, so the series continues.
+    segment_xbrl:
+      sources:
+        - members: [":CloudServicesAndLicenseSupportMember$"]
+          axes: [srt:ProductOrServiceAxis, us-gaap:ProductOrServiceAxis]
+        - members: [":CloudRevenuesMember$", ":SoftwareSupportMember$"]
+          axes: [srt:ProductOrServiceAxis]
 
 baseline:
   start: 2019-01-01

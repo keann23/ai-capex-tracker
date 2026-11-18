@@ -107,3 +107,26 @@ def test_rate_limiter_spaces_requests():
     t[0] += 1.0
     rl.wait()
     assert slept == [pytest.approx(0.125)]
+
+
+def test_filings_reads_overflow_pages_and_filters():
+    client, session = make_client()
+    recent = {"accessionNumber": ["a3", "a4", "a5"], "form": ["10-Q", "4", "10-K/A"],
+              "filingDate": ["2024-05-01", "2024-05-02", "2024-06-01"], "reportDate": ["2024-03-31", "", ""]}
+    older = {"accessionNumber": ["a1", "a2"], "form": ["10-K", "10-Q"],
+             "filingDate": ["2017-02-01", "2018-05-01"], "reportDate": ["2016-12-31", "2018-03-31"]}
+    pages = {
+        "CIK0000789019.json": {"filings": {"recent": recent, "files": [
+            {"name": "CIK0000789019-submissions-001.json", "filingTo": "2023-12-31"},
+            {"name": "CIK0000789019-submissions-000.json", "filingTo": "2016-12-31"}]}},
+        "CIK0000789019-submissions-001.json": older,
+    }
+    def get(url, headers, timeout):
+        session.calls.append((url, headers))
+        if url.endswith("company_tickers.json"):
+            return FakeResponse(TICKERS)
+        return FakeResponse(pages[url.rsplit("/", 1)[1]])
+    session.get = get
+    got = client.filings("MSFT")
+    assert [f["accn"] for f in got] == ["a2", "a3"]  # 2017, Form 4 and amendment dropped
+    assert not any(u.endswith("-000.json") for u, _ in session.calls)  # page before 2018 not fetched

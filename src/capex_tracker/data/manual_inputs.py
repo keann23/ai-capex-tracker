@@ -25,12 +25,13 @@ class ManualInputError(ValueError):
     """Raised with every bad row listed, so all problems can be fixed in one pass."""
 
 
-def _read(path: Path, expected: list[str]) -> pd.DataFrame:
+def _read(path: Path, expected: list[str], optional: tuple[str, ...] = ()) -> pd.DataFrame:
     df = pd.read_csv(path, dtype=str, keep_default_na=False)
     missing = [c for c in expected if c not in df.columns]
     if missing:
         raise ManualInputError(f"{path.name}: missing columns {missing}")
-    return df[expected].apply(lambda col: col.str.strip())
+    cols = expected + [c for c in optional if c in df.columns]
+    return df[cols].apply(lambda col: col.str.strip())
 
 
 def _row(i: int) -> str:
@@ -61,7 +62,9 @@ def _usd(value: str, label: str, i: int, errors: list[str]):
 def load_segments(path: Path = CONFIG_DIR / "segments.csv", companies: dict | None = None) -> pd.DataFrame:
     """Hand-entered segment revenue. Values are raw USD (not millions)."""
     companies = companies if companies is not None else load_companies()["companies"]
-    df = _read(path, SEGMENT_COLUMNS)
+    # 'method' (reported / ytd_diff / q4_derived / manual) is optional: rows
+    # written by scripts/fetch_segments.py have it, hand-typed rows may not.
+    df = _read(path, SEGMENT_COLUMNS, optional=("method",))
     errors: list[str] = []
     out = []
     for i, r in df.iterrows():
@@ -78,8 +81,9 @@ def load_segments(path: Path = CONFIG_DIR / "segments.csv", companies: dict | No
             "revenue_usd": _usd(r["revenue_usd"], "revenue_usd", i, errors),
             "source_accession": r["source_accession"],
             "entered_date": _date(r["entered_date"], "entered_date", i, errors),
+            "method": r.get("method") or "manual",
         })
-    result = pd.DataFrame(out, columns=SEGMENT_COLUMNS)
+    result = pd.DataFrame(out, columns=SEGMENT_COLUMNS + ["method"])
     dupes = result.duplicated(["company", "period_end", "segment"], keep=False)
     for i in result.index[dupes]:
         errors.append(f"{_row(i)}: duplicate company/period_end/segment")
