@@ -4,22 +4,37 @@ companies:
     name: Microsoft
     segment: Intelligent Cloud
     fiscal_year_end: June   # fiscal quarters must be calendar-aligned for comparison
+    segment_xbrl:            # how scripts/fetch_segments.py finds the segment in XBRL
+      member: IntelligentCloud
+      axes: [us-gaap:StatementBusinessSegmentsAxis]
   GOOGL:
     name: Alphabet
     segment: Google Cloud
     fiscal_year_end: December
+    segment_xbrl:            # how scripts/fetch_segments.py finds the segment in XBRL
+      member: GoogleCloud
+      axes: [us-gaap:StatementBusinessSegmentsAxis]
   AMZN:
     name: Amazon
     segment: AWS
     fiscal_year_end: December
+    segment_xbrl:            # how scripts/fetch_segments.py finds the segment in XBRL
+      member: AmazonWebServices
+      axes: [us-gaap:StatementBusinessSegmentsAxis]
   META:
     name: Meta
     segment: Family of Apps   # AI payoff sits inside ad revenue; attribution is fuzzier
     fiscal_year_end: December
+    segment_xbrl:            # how scripts/fetch_segments.py finds the segment in XBRL
+      member: FamilyOfApps
+      axes: [us-gaap:StatementBusinessSegmentsAxis]
   ORCL:
     name: Oracle
     segment: Cloud services and license support
     fiscal_year_end: May
+    segment_xbrl:            # how scripts/fetch_segments.py finds the segment in XBRL
+      member: CloudServicesAndLicenseSupport
+      axes: [srt:ProductOrServiceAxis, us-gaap:ProductOrServiceAxis, us-gaap:StatementBusinessSegmentsAxis]
 
 baseline:
   start: 2019-01-01
